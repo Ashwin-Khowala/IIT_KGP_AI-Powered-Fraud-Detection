@@ -48,10 +48,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Simulate login (replace with actual authentication logic)
         console.log('Login attempt:', { Email, password });
-        alert('Login successful! (This is a simulation)');
+        
 
         // Send login details to server
         async function auth_user(){
+            try{
             const response=await fetch('http://localhost:8080/auth/signin', {
                     method: 'POST',
                     headers: {
@@ -59,9 +60,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     },
                     body: JSON.stringify({ Email, password })
                 });
+                if(response.status!==202){
+                    throw new Error('Login failed');
+                }
                 const user_data=await response.json();
                 console.log(user_data);
+                alert('Login successful! Continuing to Dashboard...');
                 localStorage.setItem("Token",user_data.token);
+                window.location.href = '../dashboard_page/dashboard.html';
+            }
+            catch(error){
+                console.error('Login failed:', error);
+                alert('Login failed. Please try again');
+            }
+
         }
         auth_user();
 

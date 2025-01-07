@@ -1,3 +1,4 @@
+const {userAuthSchema} = require('../validators/user_auth.js');
 const { Router } = require("express");
 const router = Router();
 const bcrypt = require("bcrypt");
@@ -6,8 +7,9 @@ const auth_middleware = require("../middleware/user_auth.js");
 const loginThresholdMiddleware = require("../middleware/loginThresholdMiddleware.js");
 const { User , User_details} = require("../db/index.js");
 
+// const jwt_pass = process.env.JWT_PASS;
 const jwt_pass = "B374A26A71490437AA024E4FADD5B497FDFF1A8EA6FF12F6FB65AF2720B59CCF";
-const encryption_rounds = 10;
+const encryption_rounds = process.env.encryption_rounds;
 
 
 //SIGNUP ROUTE
@@ -25,13 +27,31 @@ router.post("/signup", async (req, res) => {
         DOB
     } = req.body;
 
+    try {
+        userAuthSchema.safeparse({email: Email, password});
+    } catch (error) {
+        return res.status(400).json({ message: error.errors[0].message });
+    }
+
+
     if (!firstName || !lastName || !mobile_no || !email || !password || !DOB) {
         return res.status(400).json({ message: "All fields are required" });
     }
 
     try {
         // Hash password
+        userAuthSchema.safeparse({email, password});
+
+        if(await User.exists({ email })){
+            return res.status(400).json({ message: "Email already exists" });
+        }
+
         const hashed_pass = await bcrypt.hash(password, encryption_rounds);
+
+        const user_details = new User_details({
+            user_id: user._id,
+            amount: 0
+        });
 
         const user = new User({
             firstName,
@@ -40,14 +60,12 @@ router.post("/signup", async (req, res) => {
             mobile_no,
             email,
             password: hashed_pass,
-            DOB
+            DOB,
+            user_details: user_details._id
         });
 
         //creates a user details object for the user with balance 0
-        const user_details = new User_details({
-            user_id: user._id,
-            amount: 0
-        });
+        
 
         await user.save();
         await user_details.save();
@@ -70,9 +88,16 @@ router.post("/signup", async (req, res) => {
 router.post('/signin', loginThresholdMiddleware, async (req, res) => {
     const { Email, password } = req.body;
 
+
     if (!Email || !password) {
         return res.status(400).json({ message: "Email and password are required" });
     }
+
+    // try {
+    //     userAuthSchema.safeparse({email: Email, password});
+    // } catch (error) {
+    //     return res.status(400).json({ message: error.errors[0].message });
+    // }
 
     try {
         const user = req.user; // From loginThresholdMiddleware
@@ -97,9 +122,16 @@ router.post('/signin', loginThresholdMiddleware, async (req, res) => {
         await user.resetLoginAttempts();
 
         // Generate token
-        const token = jwt.sign({ email: user.email, id: user._id }, jwt_pass, {
-            expiresIn: "1h"
-        });
+        let token;
+        try{
+            token = jwt.sign({ email: user.email, id: user._id }, jwt_pass, {
+                expiresIn: "1h"
+            });
+        }
+        catch(error){
+            console.log("error in token generation");
+            return res.status(500).json({ message: "Internal server error" });
+        }
 
         res.status(202).json({ message: "Login successful", token: `Bearer ${token}` });
     } catch (error) {

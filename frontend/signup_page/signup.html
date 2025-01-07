@@ -278,10 +278,9 @@
 
                 // Validate all sections
                 if (validatePersonalInfo() && validateContactInfo() && validateAccountInfo()) {
-                    // If all validations pass, you can submit the form
+                    
                     alert('Form submitted successfully!');
-                    // Uncomment the next line to actually submit the form
-                    // this.submit();
+                    
                 }
             });
         });
@@ -318,7 +317,8 @@
 
             const data = await response.json();
             console.log('Success:', data);
-            alert('Signup successful!');
+            alert('Signup successful! Please login to continue.');
+            window.location.href = '../log_in_page/login.html';
 
         } catch (error) {
             console.error('Error:', error);
@@ -326,7 +326,7 @@
         }
     });
 });
-     </script>
+</script>
 
 </body>
 </html>

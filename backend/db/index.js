@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const { Schema } = mongoose;
 
-mongoose.connect("mongodb+srv://ashwinkhowala1:<password>/iit-kgp-db");
+mongoose.connect(`mongodb+srv://ashwinkhowala1:${process.env.DB_PASSWORD}/iit-kgp-db`);
 
 // User schema  
 const userSchema = new Schema({
@@ -41,9 +41,17 @@ const userSchema = new Schema({
     lockUntil: {
         type: Date,
         default: null
+    },
+    user_details: {
+        type: Schema.Types.ObjectId,
+        ref: 'User_details'
     }
 });
 
+
+// userSchema.statics.getUser = async function (id) {
+//     return await this.findById(id);
+// };
 
 // Increment login attempts
 userSchema.methods.incrementLoginAttempts = async function () {
@@ -77,6 +85,10 @@ const user_details=new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Transaction'
     }],
+    transaction_limit: {
+        type: Number,
+        default: 100000
+    },
     user_id: {
         type: Schema.Types.ObjectId,
         ref: 'User',
@@ -179,11 +191,22 @@ const transactionSchema = new Schema({
         type: String,
         required: true
     },
+    description: {
+        type: String,
+        default: "",
+        required: false
+    },
     date: {
         type: Date,
         required: true
     }
 });
+
+// Get user details
+user_details.statics.getUserDetails = async function (userId) {
+    return await this.find({ user_id: userId });
+}
+
 
 
 

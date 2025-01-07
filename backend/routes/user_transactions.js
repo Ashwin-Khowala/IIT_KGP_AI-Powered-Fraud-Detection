@@ -1,7 +1,8 @@
-const { User_details } = require('../db/index.js');
+const {User, User_details } = require('../db/index.js');
+const jwt = require('jsonwebtoken');
 const express = require('express');
 const router = express.Router();
-
+const JWT_PASS="B374A26A71490437AA024E4FADD5B497FDFF1A8EA6FF12F6FB65AF2720B59CCF";
 
 // Route to handle sending money
 router.post('/transaction', async (req, res) => {
@@ -19,6 +20,43 @@ router.post('/transaction', async (req, res) => {
         res.status(200).json(result);
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
+    }
+});
+
+
+//sends the user data and sends to the frontend side by verifying the token
+router.get('/user', async (req, res) => {
+    try {
+        const token = req.headers.token?.split(' ')[1]; // Extract Bearer token
+
+        // console.log(token + " from backend");
+
+       
+        const decoded = jwt.verify(token, JWT_PASS);
+        // console.log(decoded);
+
+        const user = await User.findOne({_id:decoded.id});
+        // console.log(user);
+        
+        const user_details = await User_details.getUserDetails(user._id);
+        // console.log(user_details);
+
+        res.status(200).json({ user, user_details });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+});
+
+//sends the user data and sends to the frontend side by verifying the token
+router.get('/transactions', async (req, res) => { 
+    try {
+        const token = req.headers.token?.split(' ')[1]; // Extract Bearer token
+        const decoded = jwt.verify(token, JWT_PASS);
+        const user = await User.findOne({_id:decoded.id});
+        const transactions = await User_details.getTransactions(user._id);
+        res.status(200).json(transactions);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
     }
 });
 

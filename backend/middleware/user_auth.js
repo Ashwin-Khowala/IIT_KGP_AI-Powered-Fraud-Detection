@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const { User } = require("../db/index.js");
 
 // Secret key for signing the JWT token
-const jwt_pass = "B374A26A71490437AA024E4FADD5B497FDFF1A8EA6FF12F6FB65AF2720B59CCF";
+const jwt_pass = process.env.JWT_PASS;
 
 async function auth_middleware(req, res, next) {
     // Retrieve token from Authorization header
