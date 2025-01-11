@@ -23,11 +23,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Optional: Download Bank Statement
     const downloadPdfBtn = document.querySelector('#bank-statement .btn');
-    if (downloadPdfBtn) {
-        downloadPdfBtn.addEventListener('click', () => {
-            alert('Bank statement PDF download functionality to be implemented');
-        });
-    }
+    // if (downloadPdfBtn) {
+    //     downloadPdfBtn.addEventListener('click', () => {
+    //         alert('Bank statement PDF download functionality to be implemented');
+    //     });
+    // }
 
     // Pay Now Section Logic
     const paymentOptions = document.querySelectorAll('.payment-card .btn');

@@ -176,6 +176,16 @@ user_details.statics.sendMoney = async function (senderId, receiverId, amount) {
 };
 
 
+user_details.statics.getTransactions = async function (userId) {
+    try {
+        return await this.findOne({ user_id: userId }).populate('transactions').exec();
+    } catch (error) {
+        console.error('Error in getTransactions:', error.message);
+        throw error;
+    }
+};
+
+
 
 
 const transactionSchema = new Schema({

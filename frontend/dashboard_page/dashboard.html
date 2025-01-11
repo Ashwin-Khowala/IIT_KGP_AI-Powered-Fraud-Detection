@@ -5,9 +5,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SafeBank - Dashboard</title>
+    <!-- Add this script tag in the <head> section of your HTML file -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- Add jsPDF library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- Add autoTable plugin -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.1/jspdf.plugin.autotable.min.js"></script>
+
 </head>
 
 <body>
@@ -186,7 +200,7 @@
                         </form>
                     </div> -->
 
-                    
+
 
                     <div class="transaction-history">
                         <h3>Recent Transactions</h3>
@@ -252,7 +266,7 @@
                 <h2>Account Balance</h2>
                 <div class="dashboard-cards">
                     <div class="card">
-                        <h3 >Checking Account</h3>
+                        <h3>Checking Account</h3>
                         <p class="card-value balance-left-1">₹4,25,925</p>
                     </div>
                     <div class="card">
@@ -346,7 +360,7 @@
                 <div class="dashboard-cards">
                     <div class="card">
                         <h3>Current Statement</h3>
-                        <button class="btn">Download PDF</button>
+                        <button class="btn btn-primary" id="download-pdf">Download PDF</button>
                         <button class="btn">Print Statement</button>
                         <button class="btn">View</button>
                     </div>
@@ -385,20 +399,20 @@
                 const data = await response.json();
                 console.log(data);
                 // if (data.success) {
-                    user = data.user;
-                    user_details = data.user_details;
-                    console.log(user.firstName);
-                    console.log(user_details[0].amount);
-                    
-                    
-                    document.querySelector('.user-name').innerText = `Welcome,${user.firstName }!`;
-                    document.querySelector('.balance').innerText = `₹${user_details[0].amount}`;
-                    document.querySelector('.balance-left').innerHTML = `<strong>₹${user_details[0].amount}<strong>`;
-                    document.querySelector('.balance-left-1').innerHTML = `<strong>₹${user_details[0].amount}<strong>`;
-                    document.querySelector('.balance-left-2').innerHTML = `<strong>₹${user_details[0].amount}<strong>`;
-                    document.querySelector('.transaction-limit').innerHTML = `<strong>₹${user_details[0].transaction_limit}<strong>`;
-                    
-                    // document.querySelector('last-transaction').textContent = data.transactions[0]?.amount || '-';
+                user = data.user;
+                user_details = data.user_details;
+                console.log(user.firstName);
+                console.log(user_details[0].amount);
+
+
+                document.querySelector('.user-name').innerText = `Welcome,${user.firstName}!`;
+                document.querySelector('.balance').innerText = `₹${user_details[0].amount}`;
+                document.querySelector('.balance-left').innerHTML = `<strong>₹${user_details[0].amount}<strong>`;
+                document.querySelector('.balance-left-1').innerHTML = `<strong>₹${user_details[0].amount}<strong>`;
+                document.querySelector('.balance-left-2').innerHTML = `<strong>₹${user_details[0].amount}<strong>`;
+                document.querySelector('.transaction-limit').innerHTML = `<strong>₹${user_details[0].transaction_limit}<strong>`;
+
+                // document.querySelector('last-transaction').textContent = data.transactions[0]?.amount || '-';
                 // }
             } catch (error) {
                 console.error('Failed to fetch user data:', error);
@@ -407,6 +421,122 @@
 
         fetchUserData();
     </script>
+    <!-- <script>
+        document.getElementById('download-pdf').addEventListener('click', async () => {
+            try {
+                const response = await fetch('http://localhost:8080/api/transaction-history', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'token': `${localStorage.getItem('Token')}`,
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch transaction data.');
+                }
+
+                const transactions = await response.json();
+
+                // Use jsPDF to generate PDF
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                // Title
+                doc.setFontSize(16);
+                doc.text('Transaction History', 105, 10, { align: 'center' });
+
+                // Table headers
+                const headers = ['Date', 'Description', 'Amount', 'Type'];
+                const rows = transactions.map((tx) => [
+                    tx.date,           // Format the date properly if needed
+                    tx.description,
+                    tx.amount,
+                    tx.type,
+                ]);
+
+                doc.autoTable({
+                    head: [headers],
+                    body: rows,
+                    startY: 20,
+                });
+
+                // Save the PDF
+                doc.save('Transaction_History.pdf');
+            } catch (error) {
+                console.error('Error downloading PDF:', error.message);
+                alert('Could not generate PDF. Please try again.');
+            }
+        });
+
+    </script> -->
+    <!-- Add this script tag in the <head> section of your HTML file -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- Add jsPDF library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- Add autoTable plugin -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
+
+<script>
+// Function to fetch transaction history and generate PDF
+function downloadBankStatementPDF() {
+    const token = localStorage.getItem("token");
+    if (!token) {
+        console.error("No token found, please log in.");
+        return;
+    }
+
+    fetch('http://localhost:8080/api/transaction-history', {
+        method: 'GET',
+        headers: {
+            'token': `${localStorage.getItem('Token')}`,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log(data);  
+            const transactions = data.transactions || []; // Assume data is an array of transactions
+
+            console.log(transactions);
+            
+            // Initialize jsPDF
+            const { jsPDF } = window.jspdf;  // Get jsPDF from the global window object
+            const doc = new jsPDF();
+            doc.setFontSize(18);
+            doc.text("Bank Statement", 14, 20);
+            doc.setFontSize(12);
+
+            const headers = ["Date", "Description", "Amount", "Balance"];
+            const rows = transactions.map(transaction => [
+                transaction.date,
+                transaction.description,
+                transaction.amount,
+                // transaction.balance
+                null
+            ]);
+
+            doc.autoTable({
+                head: [headers],
+                body: rows,
+                startY: 50,
+                theme: 'striped'
+            });
+
+            doc.save('bank_statement.pdf');
+        
+    })
+    .catch(error => {
+        console.error("Error fetching transaction history:", error);
+    });
+}
+document.getElementById("download-pdf").addEventListener("click", downloadBankStatementPDF);
+fetchUserData();
+
+    </script>
+    
     <script src="logout.js"></script>
 </body>
 
