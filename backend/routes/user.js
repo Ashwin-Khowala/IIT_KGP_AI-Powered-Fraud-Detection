@@ -1,3 +1,4 @@
+
 const {userAuthSchema} = require('../validators/user_auth.js');
 const { Router } = require("express");
 const router = Router();
@@ -9,7 +10,8 @@ const { User , User_details} = require("../db/index.js");
 
 // const jwt_pass = process.env.JWT_PASS;
 const jwt_pass = "B374A26A71490437AA024E4FADD5B497FDFF1A8EA6FF12F6FB65AF2720B59CCF";
-const encryption_rounds = process.env.encryption_rounds;
+// const encryption_rounds = process.env.encryption_rounds;
+const encryption_rounds = 10;
 
 
 //SIGNUP ROUTE
@@ -27,12 +29,6 @@ router.post("/signup", async (req, res) => {
         DOB
     } = req.body;
 
-    try {
-        userAuthSchema.safeparse({email: Email, password});
-    } catch (error) {
-        return res.status(400).json({ message: error.errors[0].message });
-    }
-
 
     if (!firstName || !lastName || !mobile_no || !email || !password || !DOB) {
         return res.status(400).json({ message: "All fields are required" });
@@ -40,18 +36,18 @@ router.post("/signup", async (req, res) => {
 
     try {
         // Hash password
-        userAuthSchema.safeparse({email, password});
+        const validation = userAuthSchema.safeParse({ email, password });
 
+        if(!validation.success){
+            return res.status(400).json({ message: validation.error.errors[0].message });
+        }
         if(await User.exists({ email })){
             return res.status(400).json({ message: "Email already exists" });
         }
 
         const hashed_pass = await bcrypt.hash(password, encryption_rounds);
 
-        const user_details = new User_details({
-            user_id: user._id,
-            amount: 0
-        });
+        
 
         const user = new User({
             firstName,
@@ -60,15 +56,22 @@ router.post("/signup", async (req, res) => {
             mobile_no,
             email,
             password: hashed_pass,
-            DOB,
-            user_details: user_details._id
+            DOB
         });
 
         //creates a user details object for the user with balance 0
+        const user_details = new User_details({
+            user_id: user._id, // Link user ID to user details
+            amount: 0
+        });
         
-
+        
+        // Associate user details ID with the user
+        user.user_details_id = user_details._id;
+        
+        // Save the user after updating the user_details_id
+        await user_details.save(); // Wait for user_details to save
         await user.save();
-        await user_details.save();
 
         // Generate token expires in 1hr needs to be saved locally
         const token = jwt.sign({ email: user.email, id: user._id }, jwt_pass, {

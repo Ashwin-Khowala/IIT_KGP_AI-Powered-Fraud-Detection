@@ -76,7 +76,7 @@
                 </div>
             </section>
 
-            <!-- Transactions Tab -->
+            <!-- <!-- Transactions Tab -->
             <section id="transactions" class="tab-content">
                 <div class="transactions-header">
                     <h2>Money Transfer</h2>
@@ -108,7 +108,7 @@
                         </button>
                     </div>
 
-                    <div id="payment-gateway" class="payment-gateway" style="display: none;">
+                    <!-- <div id="payment-gateway" class="payment-gateway" style="display: none;"> 
                         <form id="payment-form">
                             <div class="payment-form-header">
                                 <h3 id="payment-form-title">Send Money</h3>
@@ -184,7 +184,9 @@
                                 </div>
                             </div>
                         </form>
-                    </div>
+                    </div> -->
+
+                    
 
                     <div class="transaction-history">
                         <h3>Recent Transactions</h3>
@@ -346,6 +348,19 @@
                         <h3>Current Statement</h3>
                         <button class="btn">Download PDF</button>
                         <button class="btn">Print Statement</button>
+                        <button class="btn">View</button>
+                    </div>
+                </div>
+            </section>
+            <!-- Container for Date-wise Bank Statement -->
+            <section id="date-wise-statement" class="tab-content">
+                <h2>Download Bank Statement by Date</h2>
+                <div class="dashboard-cards">
+                    <div class="card">
+                        <h3>Select Date</h3>
+                        <input type="date" id="statement-date" class="form-control">
+                        <button class="btn" onclick="downloadStatementByDate()">Download PDF</button>
+                        <button class="btn" onclick="viewStatementByDate()">View</button>
                     </div>
                 </div>
             </section>
@@ -373,13 +388,15 @@
                     user = data.user;
                     user_details = data.user_details;
                     console.log(user.firstName);
+                    console.log(user_details[0].amount);
                     
-                    document.querySelector('.user-name').innerText = `Welcome,${user.firstName}!`;
-                    document.querySelector('.balance').innerText = `₹${user_details.amount}`;
-                    document.querySelector('.balance-left').innerHTML = `<strong>₹${user_details.amount}<strong>`;
-                    document.querySelector('.balance-left-1').innerHTML = `<strong>₹${user_details.amount}<strong>`;
-                    document.querySelector('.balance-left-2').innerHTML = `<strong>₹${user_details.amount}<strong>`;
-                    document.querySelector('.transaction-limit').innerHTML = `<strong>₹${user_details.transaction_limit}<strong>`;
+                    
+                    document.querySelector('.user-name').innerText = `Welcome,${user.firstName }!`;
+                    document.querySelector('.balance').innerText = `₹${user_details[0].amount}`;
+                    document.querySelector('.balance-left').innerHTML = `<strong>₹${user_details[0].amount}<strong>`;
+                    document.querySelector('.balance-left-1').innerHTML = `<strong>₹${user_details[0].amount}<strong>`;
+                    document.querySelector('.balance-left-2').innerHTML = `<strong>₹${user_details[0].amount}<strong>`;
+                    document.querySelector('.transaction-limit').innerHTML = `<strong>₹${user_details[0].transaction_limit}<strong>`;
                     
                     // document.querySelector('last-transaction').textContent = data.transactions[0]?.amount || '-';
                 // }
@@ -388,29 +405,6 @@
             }
         }
 
-        // Handle Form Submission
-        // document.getElementById('transaction-form').addEventListener('submit', async (e) => {
-        //     e.preventDefault();
-        //     const recipient = document.getElementById('recipient').value;
-        //     const amount = document.getElementById('amount').value;
-        //     const paymentMethod = document.getElementById('payment-method').value;
-
-        //     try {
-        //         const response = await fetch('http://localhost:8080/api/transfer', {
-        //             method: 'POST',
-        //             headers: {
-        //                 'Content-Type': 'application/json',
-        //                 'token': localStorage.getItem('Token')
-        //             },
-        //             body: JSON.stringify({ recipient, amount, paymentMethod })
-        //         });
-
-        //         const data = await response.json();
-        //         alert(data.message);
-        //     } catch (error) {
-        //         console.error('Transfer failed:', error);
-        //     }
-        // });
         fetchUserData();
     </script>
     <script src="logout.js"></script>

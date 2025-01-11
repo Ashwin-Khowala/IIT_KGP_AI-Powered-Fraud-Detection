@@ -43,6 +43,7 @@ const userSchema = new Schema({
         default: null
     },
     user_details: {
+        // required:true,
         type: Schema.Types.ObjectId,
         ref: 'User_details'
     }

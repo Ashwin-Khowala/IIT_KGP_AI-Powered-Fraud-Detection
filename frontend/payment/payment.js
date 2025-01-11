@@ -1,35 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Tab Switching Logic
-    const sidebarLinks = document.querySelectorAll('.sidebar-menu a[data-tab]');
-    const tabContents = document.querySelectorAll('.tab-content');
-
-    sidebarLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const tabId = link.getAttribute('data-tab');
-
-            // Remove active class from all links and tabs
-            sidebarLinks.forEach(l => l.classList.remove('active'));
-            tabContents.forEach(tab => tab.classList.remove('active'));
-
-            // Add active class to clicked link and corresponding tab
-            link.classList.add('active');
-            document.getElementById(tabId).classList.add('active');
-        });
-    });
-
-    // Balance Verification Logic Removed
-    // Removed captcha and password verification code block
-
-    // Optional: Download Bank Statement
-    const downloadPdfBtn = document.querySelector('#bank-statement .btn');
-    if (downloadPdfBtn) {
-        downloadPdfBtn.addEventListener('click', () => {
-            alert('Bank statement PDF download functionality to be implemented');
-        });
-    }
-
-    // Pay Now Section Logic
     const paymentOptions = document.querySelectorAll('.payment-card .btn');
     const paymentForm = document.getElementById('payment-form');
     const quickPaymentForm = document.getElementById('quick-payment-form');
@@ -54,7 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
     cancelPaymentBtn.addEventListener('click', () => {
         // Hide payment form, show payment options
         paymentForm.style.display = 'none';
-        document.querySelector('.payment-options').style.display = 'flex';
+        // document.querySelector('.payment-options').style.display = 'flex';
+        window.location.href="../dashboard_page/dashboard.html";
+
     });
 
     // Update Total Amount
@@ -92,18 +63,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Bank Account Number Validation
-    function validateBankAccountNumber(accountNumber) {
-        // Remove any spaces or dashes
-        const cleanedAccountNumber = accountNumber.replace(/[\s-]/g, '');
+    // function validateBankAccountNumber(accountNumber) {
+    //     // Remove any spaces or dashes
+    //     const cleanedAccountNumber = accountNumber.replace(/[\s-]/g, '');
         
-        // Check if it's a valid length (9-18 digits)
-        if (!/^\d{9,18}$/.test(cleanedAccountNumber)) {
-            return false;
-        }
+    //     // Check if it's a valid length (9-18 digits)
+    //     if (!/^\d{9,18}$/.test(cleanedAccountNumber)) {
+    //         return false;
+    //     }
         
-        // Optional: Implement Luhn algorithm or bank-specific validation
-        return true;
-    }
+    //     // Optional: Implement Luhn algorithm or bank-specific validation
+    //     return true;
+    // }
 
     // Transactions Tab Payment Gateway Logic
     const sendMoneyBtn = document.getElementById('send-money-btn');

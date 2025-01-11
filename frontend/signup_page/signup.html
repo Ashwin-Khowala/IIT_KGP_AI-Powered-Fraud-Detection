@@ -273,16 +273,16 @@
             });
 
             // Form Submission
-            form.addEventListener('submit', function(event) {
-                event.preventDefault();
+            // form.addEventListener('submit', function(event) {
+            //     event.preventDefault();
 
-                // Validate all sections
-                if (validatePersonalInfo() && validateContactInfo() && validateAccountInfo()) {
+            //     // Validate all sections
+            //     if (validatePersonalInfo() && validateContactInfo() && validateAccountInfo()) {
                     
-                    alert('Form submitted successfully!');
+            //         alert('Form submitted successfully!');
                     
-                }
-            });
+            //     }
+            // });
         });
     </script>
 
@@ -315,14 +315,20 @@
                 body: JSON.stringify(personalInfo)
             });
 
+            if (!response.ok) {
+                throw new Error(`Failed to signup: ${response.statusText}`);
+            }
+            ;
+
             const data = await response.json();
             console.log('Success:', data);
             alert('Signup successful! Please login to continue.');
             window.location.href = '../log_in_page/login.html';
 
         } catch (error) {
-            console.error('Error:', error);
-            alert('Signup failed!');
+            console.log('Error:', error);
+            alert('Signup failed! try again ');
+            window.location.href='./signup.html'
         }
     });
 });
