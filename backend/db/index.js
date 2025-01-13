@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const { Schema } = mongoose;
 
-mongoose.connect(`mongodb+srv://ashwinkhowala1:${process.env.DB_PASSWORD}/iit-kgp-db`);
+mongoose.connect(`mongodb+srv://ashwinkhowala1:wLil4woeOph962yd@cluster0.j6l3z.mongodb.net/iit-kgp-db`);
 
 // User schema  
 const userSchema = new Schema({

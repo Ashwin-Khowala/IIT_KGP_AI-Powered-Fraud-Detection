@@ -6,7 +6,7 @@ const user_Route = require("./routes/user");
 const user_transaction = require("./routes/user_transactions");
 
 const app = express();
-const port = 8080;
+const port = process.env.port;
 
 // Middleware
 app.use(express.json());
