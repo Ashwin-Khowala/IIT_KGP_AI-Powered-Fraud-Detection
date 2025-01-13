@@ -81,7 +81,7 @@
                     </div>
                     <div class="card">
                         <h3>Last Transaction</h3>
-                        <p class="card-value text-success last-transaction" id="last-transaction">+₹37,500</p>
+                        <p class="card-value text-success last-transaction" id="last-transaction">₹0</p>
                     </div>
                     <div class="card">
                         <h3>Pending Transactions</h3>
@@ -139,7 +139,7 @@
                                 </tr>
                             </thead>
                             <tbody id="transaction-list">
-                                <tr>
+                                <!-- <tr>
                                     <td>2025-01-03</td>
                                     <td>Online Purchase</td>
                                     <td class="text-danger">-₹5,625</td>
@@ -150,7 +150,14 @@
                                     <td>Salary Deposit</td>
                                     <td class="text-success">+₹3,75,000</td>
                                     <td><span class="status-badge completed">Completed</span></td>
-                                </tr>
+                                </tr> -->
+                                <!-- <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr> -->
                             </tbody>
                         </table>
                     </div>
@@ -350,7 +357,7 @@
     <script>
         async function fetch_transaction_history() {
             console.log('hi');
-            
+
             try {
                 const response = await fetch('http://localhost:8080/api/transaction-history', {
                     method: 'GET',
@@ -362,20 +369,23 @@
 
                 const data = await response.json();
 
+                console.log(data);
+                
                 // if (data.success) {
-                    const transactions = data.transactions;
-                    console.log(transactions);
-                    
-                    // Update the "Last Transaction" in the sidebar
-                    const lastTransaction = transactions[transactions.length- 1];
-                    const lastTransactionAmount = lastTransaction.amount > 0
-                        ? `-₹${lastTransaction.amount}`
-                        : `+₹${Math.abs(lastTransaction.amount)}`;
-                    document.getElementById('last-transaction').innerText = lastTransactionAmount;
+                const transactions = data.transactions;
+                console.log('hi');
+                
+                console.log(transactions);
 
-                    // Populate the transaction table
-                    const transactionList = document.getElementById('transaction-list');
-                    transactionList.innerHTML = ''; // Clear existing transactions
+                // Update the "Last Transaction" in the sidebar
+                const lastTransaction = transactions[transactions.length - 1];
+                const lastTransactionAmount = lastTransaction.type == "Credit" ? `+₹${lastTransaction.amount}`
+                    : `-₹${Math.abs(lastTransaction.amount)}`;
+                document.getElementById('last-transaction').innerText = lastTransactionAmount;
+
+                // Populate the transaction table
+                const transactionList = document.getElementById('transaction-list');
+                transactionList.innerHTML = ''; // Clear existing transactions
 
                     transactions.forEach(transaction => {
                         const transactionRow = document.createElement('tr');
@@ -383,10 +393,10 @@
                     <td>${transaction.date.split('T')[0]}</td>
                     <td>${(transaction.date.split('T'))[1]}</td>
                     <td>${transaction.description}</td>
-                    <td class="${transaction.type=='Credit' > 0 ? 'text-success' : 'text-danger'}">
-                        ${transaction.type=='Credit' > 0 ? '+' : '-'}₹${Math.abs(transaction.amount)}
+                    <td class="${transaction.type=='Credit' ? 'text-success' : 'text-danger'}">
+                        ${transaction.type=='Credit' ? '+' : '-'} ₹${Math.abs(transaction.amount)}
                     </td>
-                    <td class="${transaction.type=='Credit' > 0 ? 'text-success' : 'text-danger'}">
+                    <td class="${transaction.type=='Credit' ? 'text-success' : 'text-danger'}">
                         ${transaction.type}
                     </td>
                     <td>
@@ -395,7 +405,6 @@
                 `;
                         transactionList.appendChild(transactionRow);
                     });
-                // }
             } catch (error) {
                 console.error('Failed to fetch transaction history:', error);
             }
@@ -445,13 +454,12 @@
                     doc.text(`Account Number: ${data.user_id}`, 14, 30);
                     // doc.text(`Account Holder: ${data[0].username}`, 14, 40);
 
-                    const headers = ["Date", "Description", "Amount", "Balance"];
+                    const headers = ["Date", "Description", "Amount", "Type"];
                     const rows = transactions.map(transaction => [
                         transaction.date,
                         transaction.description,
                         transaction.amount,
-                        // transaction.balance
-                        null
+                        transaction.type
                     ]);
 
                     doc.autoTable({

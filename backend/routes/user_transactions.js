@@ -56,16 +56,13 @@ router.get('/user', async (req, res) => {
 //sends the user data and sends to the frontend side by verifying the token
 router.get('/transaction-history', async (req, res) => {
     try {
-        const token = req.headers.token?.split(' ')[1]; // Extract Bearer token
-        // console.log(token);
+        const token = req.headers.token?.split(' ')[1]; 
         
         const decoded = jwt.verify(token, JWT_PASS);
         const user = await User.findOne({ _id: decoded.id });
         const transactions = await User_details.getTransactions(user._id);
-
-        console.log(User_details); // Check what methods are available
-
-
+        console.log(transactions);
+        
         res.status(200).json(transactions);
     } catch (error) {
         res.status(400).json({ message: error.message });

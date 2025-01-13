@@ -39,7 +39,7 @@ router.post("/signup", async (req, res) => {
         const validation = userAuthSchema.safeParse({ email, password });
 
         if(!validation.success){
-            return res.status(400).json({ message: validation.error.errors[0].message });
+            return res.status(404).json({ message: validation.error.errors[0].message });
         }
         if(await User.exists({ email })){
             return res.status(400).json({ message: "Email already exists" });
@@ -47,7 +47,9 @@ router.post("/signup", async (req, res) => {
 
         const hashed_pass = await bcrypt.hash(password, encryption_rounds);
 
-        
+        // if(await User.find({email:email})){
+        //     return res.status(400).json({ message: "Email already exists" });
+        // }
 
         const user = new User({
             firstName,
@@ -60,8 +62,9 @@ router.post("/signup", async (req, res) => {
         });
 
         //creates a user details object for the user with balance 0
+
         const user_details = new User_details({
-            user_id: user._id, // Link user ID to user details
+            user_id: user._id, 
             amount: 0
         });
         
@@ -70,15 +73,17 @@ router.post("/signup", async (req, res) => {
         user.user_details_id = user_details._id;
         
         // Save the user after updating the user_details_id
+        console.log('above save');
         await user_details.save(); // Wait for user_details to save
         await user.save();
+        console.log('saved');
 
         // Generate token expires in 1hr needs to be saved locally
         const token = jwt.sign({ email: user.email, id: user._id }, jwt_pass, {
             expiresIn: "1h"
         });
 
-        res.status(201).json({ message: "Signup successful", token: `Bearer ${token}` });
+        res.status(202).json({ message: "Signup successful", token: `Bearer ${token}` });
     } catch (err) {
         console.error("Signup Error:", err.message);
         res.status(500).json({ message: "Internal server error" });
