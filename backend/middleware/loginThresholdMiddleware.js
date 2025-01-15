@@ -40,7 +40,8 @@ async function loginThresholdMiddleware(req, res, next) {
                 from: "noreply.safebank@gmail.com",
                 to: user.email,
                 subject: "⚠️ Suspicious Login Attempts Detected",
-                text: `We've noticed 3 failed login attempts on your account. If this wasn't you, please reset your password immediately.`
+                text: `We've noticed 3 failed login attempts on your account. If this wasn't you, please reset your password immediately.
+                       You can reset your password by clickign ont the given link `
             });
         }
 

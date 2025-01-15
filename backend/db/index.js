@@ -176,6 +176,86 @@ user_details.statics.sendMoney = async function (senderId, receiverId, amount) {
 };
 
 
+user_details.statics.acceptPending = async function (senderId, receiverId, amount) {
+    try {
+        if (amount <= 0) {
+            throw new Error("Amount must be greater than zero.");
+        }
+
+        // senderId = new mongoose.Types.ObjectId(senderId);
+        // receiverId = new mongoose.Types.ObjectId(receiverId);
+
+        console.log("Sender ID:", senderId);  // Debugging log
+
+        // Find sender and receiver
+        const sender = await this.findOne({ user_id: senderId });
+        const receiver = await this.findOne({ user_id: receiverId });
+
+        if (!sender) {
+            throw new Error(`Sender not found with ID: ${senderId}`);
+        }
+
+        if (!receiver) {
+            throw new Error(`Receiver not found with ID: ${receiverId}`);
+        }
+
+        sender.amount = Number(sender.amount);
+        receiver.amount = Number(receiver.amount);
+
+        if (sender.amount < amount) {
+            throw new Error("Insufficient balance.");
+        }
+
+        // Start a transaction session
+        const session = await mongoose.startSession();
+        session.startTransaction();
+
+        try {
+            sender.amount -= amount;
+            receiver.amount += amount;
+
+            await sender.save({ session });
+            await receiver.save({ session });
+
+            const debitTransaction = await Transaction.create([{
+                user_id: senderId,
+                amount: amount,
+                type: "Debit",
+                date: new Date()
+            }], { session });
+
+            const creditTransaction = await Transaction.create([{
+                user_id: receiverId,
+                amount: amount,
+                type: "Credit",
+                date: new Date()
+            }], { session });
+
+            sender.transactions.push(debitTransaction[0]._id);
+            receiver.transactions.push(creditTransaction[0]._id);
+
+            await sender.save({ session });
+            await receiver.save({ session });
+
+            // Commit the transaction
+            await session.commitTransaction();
+            session.endSession();
+
+            return { success: true, message: "Transaction successful!" };
+        } catch (error) {
+            // Abort the transaction on error
+            await session.abortTransaction();
+            session.endSession();
+            throw error;
+        }
+    } catch (error) {
+        console.error("Error in acceptPending:", error.message);
+        throw error;
+    }
+};
+
+
+
 user_details.statics.getTransactions = async function (userId) {
     try {
         return await this.findOne({ user_id: userId }).populate('transactions').exec();
@@ -228,9 +308,53 @@ const User = mongoose.model("User", userSchema);
 const User_details = mongoose.model("User_details", user_details);
 const Transaction = mongoose.model("Transaction", transactionSchema);
 
+const PendingRequestSchema = new mongoose.Schema({
+    senderId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    receiverId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    amount: {
+        type: Number,
+        required: true
+    },
+    paymentMethod: {
+        type: String,
+        required: true
+    },
+    description: String,
+    status: {
+        type: String,
+        default: 'Pending'
+    },
+    reason: {
+        type: String,
+        required: true   // Adjust according to your model's validation rules
+    },
+    user_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        // required: true  // Make sure this field is included and required
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    }
+});
+
+const PendingRequest = mongoose.model('PendingRequest', PendingRequestSchema);
+
+
+
 // Export models
 module.exports = {
     User,
     User_details,
-    Transaction
+    Transaction,
+    PendingRequest
 };

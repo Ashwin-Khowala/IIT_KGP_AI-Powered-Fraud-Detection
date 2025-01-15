@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Request Money Button
     requestMoneyBtn.addEventListener('click', () => {
-        window.location.href="../payment/paymentgateway.html";
+        window.location.href="../req-payment/index.html";
     });
 
     // Cancel Payment

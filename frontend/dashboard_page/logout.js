@@ -6,7 +6,7 @@ function logout() {
     localStorage.removeItem('userToken');
     
     // Redirect to login page
-    window.location.href = '../log_in_page/login.html';
+    window.location.href = '../log_in_page/index.html';
 }
 
 // Attach logout function to logout button
