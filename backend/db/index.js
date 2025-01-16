@@ -46,26 +46,49 @@ const userSchema = new Schema({
         // required:true,
         type: Schema.Types.ObjectId,
         ref: 'User_details'
+    },
+    resetToken: {
+        type: String,
+        default: null // Token will be null by default until it's generated
+    },
+    tokenExpiry: {
+        type: Date,
+        default: null // Expiry will be null by default
     }
 });
 
 
-// userSchema.statics.getUser = async function (id) {
-//     return await this.findById(id);
+// // Increment login attempts
+// userSchema.methods.incrementLoginAttempts = async function () {
+//     if (this.lockUntil && this.lockUntil > Date.now(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }))) {
+//         return;
+//     }
+
+//     this.loginAttempts += 1;
+
+//     if (this.loginAttempts >= 5) {
+//         this.lockUntil = new Date(Date.now(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })) + 15 * 60 * 1000); // Lock for 15 minutes
+//     }
+
+//     await this.save();
 // };
 
-// Increment login attempts
+// // Reset login attempts
+// userSchema.methods.resetLoginAttempts = async function () {
+//     this.loginAttempts = 0;
+//     this.lockUntil = null;
+//     await this.save();
+// };
+
+
 userSchema.methods.incrementLoginAttempts = async function () {
-    if (this.lockUntil && this.lockUntil > Date.now(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }))) {
+    if (this.lockUntil && this.lockUntil > Date.now()) {
         return;
     }
-
     this.loginAttempts += 1;
-
     if (this.loginAttempts >= 5) {
-        this.lockUntil = new Date(Date.now(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })) + 15 * 60 * 1000); // Lock for 15 minutes
+        this.lockUntil = new Date(Date.now() + 15 * 60 * 1000); // Lock for 15 minutes
     }
-
     await this.save();
 };
 
@@ -75,6 +98,8 @@ userSchema.methods.resetLoginAttempts = async function () {
     this.lockUntil = null;
     await this.save();
 };
+
+
 
 
 const user_details=new Schema({
@@ -181,9 +206,6 @@ user_details.statics.acceptPending = async function (senderId, receiverId, amoun
         if (amount <= 0) {
             throw new Error("Amount must be greater than zero.");
         }
-
-        // senderId = new mongoose.Types.ObjectId(senderId);
-        // receiverId = new mongoose.Types.ObjectId(receiverId);
 
         console.log("Sender ID:", senderId);  // Debugging log
 

@@ -5,10 +5,10 @@ const { User } = require("../db/index.js");
 const transporter = nodemailer.createTransport({
     service: "gmail",
     secure:true,
-    host:"smtp.gmail.com",
+    // host:"smtp.gmail.com",
     auth: {
         user: "noreply.safebank@gmail.com",
-        pass: process.env.pass,
+        pass: "mkbcmstksmnaqtkq",
     }
 });
 

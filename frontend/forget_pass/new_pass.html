@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SafeBank - Forget Password</title>
-    <link rel="stylesheet" href="styles.css"> 
+    <title>SafeBank - Reset Password</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -94,7 +93,7 @@
             color: #555;
         }
 
-        input[type="email"] {
+        input[type="password"] {
             width: 90%;
             padding: 12px;
             margin-bottom: 15px;
@@ -103,7 +102,7 @@
             transition: border-color 0.3s;
         }
 
-        input[type="email"]:focus {
+        input[type="password"]:focus {
             border-color: #2980b9;
             outline: none;
         }
@@ -121,6 +120,11 @@
 
         button:hover {
             background-color: #4cae4c;
+        }
+
+        #strength-meter {
+            font-size: 0.9rem;
+            margin: 5px 0;
         }
 
         p {
@@ -149,6 +153,7 @@
                 <a href="#"><i class="fas fa-info-circle"></i> About</a>
                 <a href="#"><i class="fas fa-briefcase"></i> Services</a>
                 <a href="#"><i class="fas fa-envelope"></i> Contact</a>
+                <a href="/change-pass" id="changePassLink"><i class="fas fa-key"></i> Change Password</a>
             </div>
             <div class="support-info">
                 <span><i class="fas fa-lock"></i> Secure Online Banking</span>
@@ -158,35 +163,84 @@
     </nav>
     <main class="container">
         <h1>Reset Your Password</h1>
-        <form id="reset-form" action="#" method="POST">
-            <label for="email">Email Address:</label>
-            <input type="email" id="email" name="email" placeholder="Enter your email" required>
-            <button type="submit">Send Reset Link</button>
+        <form id="passwordForm">
+            <div class="form-group">
+                <label for="new-password">New Password:</label>
+                <input type="password" id="new-password" name="new-password" placeholder="Enter new password" required>
+                <div id="strength-meter"></div>
+            </div>
+            <div class="form-group">
+                <label for="confirm-password">Confirm New Password:</label>
+                <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm new password" required>
+            </div>
+            <button type="submit">Update Password</button>
         </form>
-        <p>Remembered your password? <a href="../log_in_page/index.html">Login here</a></p>
         <div id="message-area" style="text-align:center; margin-top: 10px;"></div>
     </main>
     <script>
-        document.getElementById('reset-form').addEventListener('submit', async function (event) {
-            event.preventDefault();
-            const emailInput = document.getElementById('email').value;
+        document.addEventListener('DOMContentLoaded', function() {
+            const newPassword = document.getElementById('new-password');
+            const confirmPassword = document.getElementById('confirm-password');
+            const strengthMeter = document.getElementById('strength-meter');
+            const form = document.getElementById('passwordForm');
             const messageArea = document.getElementById('message-area');
+            const urlParams = new URLSearchParams(window.location.search);
+            // Password strength check
+            newPassword.addEventListener('input', function() {
+                const strength = checkPasswordStrength(newPassword.value);
+                strengthMeter.innerText = `Strength: ${strength}`;
+                strengthMeter.style.color = strength === "Strong" ? "green" : strength === "Medium" ? "orange" : "red";
+            });
 
-            try {
-                const response = await fetch('http://localhost:8080/auth/reset-password', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: emailInput }),
-                });
+            // Handle form submission with Fetch
+            form.addEventListener('submit', async function(event) {
+                event.preventDefault();
 
-                if (response.ok) {
-                    messageArea.innerHTML = '<p style="color: green;">Email sent! Please check your inbox.</p>';
-                } else {
-                    const error = await response.json();
-                    messageArea.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+                const password = newPassword.value;
+                const confirmPasswordValue = confirmPassword.value;
+
+                if (password !== confirmPasswordValue) {
+                    messageArea.innerHTML = '<p style="color: red;">Passwords do not match.</p>';
+                    return;
                 }
-            } catch (err) {
-                messageArea.innerHTML = '<p style="color: red;">An error occurred. Please try again later.</p>';
+                try {
+                    const token = urlParams.get('token');
+                    const response = await fetch(`http://localhost:8080/auth/change-pass`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            token:token,
+                            newPassword: password,
+                            confirmPassword: confirmPasswordValue
+                        })
+                    });
+
+                    const result = await response.text();
+
+                    if (response.ok) {
+                        messageArea.innerHTML = `<p style="color: green;">${result}</p>`;
+                        form.reset();
+                        strengthMeter.innerText = '';
+                    } else {
+                        messageArea.innerHTML = `<p style="color: red;">${result}</p>`;
+                    }
+                } catch (error) {
+                    messageArea.innerHTML = '<p style="color: red;">An error occurred. Please try again.</p>';
+                }
+            });
+
+            // Password strength function
+            function checkPasswordStrength(password) {
+                const weakRegex = /^[a-zA-Z0-9]{6,}$/;
+                const mediumRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+                const strongRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,}$/;
+
+                if (strongRegex.test(password)) return "Strong";
+                if (mediumRegex.test(password)) return "Medium";
+                if (weakRegex.test(password)) return "Weak";
+                return "Very Weak";
             }
         });
     </script>

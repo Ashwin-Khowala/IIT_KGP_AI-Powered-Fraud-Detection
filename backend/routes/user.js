@@ -1,6 +1,8 @@
 
 const {userAuthSchema} = require('../validators/user_auth.js');
 const { Router } = require("express");
+const nodemailer = require("nodemailer");
+const crypto = require('crypto');
 const router = Router();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -116,14 +118,15 @@ router.post('/signin', loginThresholdMiddleware, async (req, res) => {
             await user.incrementLoginAttempts();
             return res.status(401).json({ message: "Invalid credentials" });
         }
-        else{
+
+        // else{
             await user.resetLoginAttempts();
-        }
+        // }
         
         //unlocks the accout if the lock time is over
-        if(user.lockUntil && user.lockUntil < Date.now(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }))){
-            await user.resetLoginAttempts();
-        }
+        // if(user.lockUntil && user.lockUntil < Date.now(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }))){
+        //     await user.resetLoginAttempts();
+        // }
 
 
         // Successful login - reset attempts
@@ -145,6 +148,91 @@ router.post('/signin', loginThresholdMiddleware, async (req, res) => {
     } catch (error) {
         console.error("Signin Error:", error.message);
         res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+
+
+router.post('/change-pass', async (req, res) => {
+    const { token, newPassword, confirmPassword } = req.body;
+
+    if (newPassword !== confirmPassword) {
+        return res.status(400).send('Passwords do not match.');
+    }
+
+    // Find the user by token
+    const user = await User.findOne({
+        resetToken: token,
+        tokenExpiry: { $gt: Date.now() } // Token has not expired
+    });
+
+    if (!user) {
+        return res.status(400).send('Invalid or expired token.');
+    }
+
+    // Update password (hash the password before saving)
+    user.password =  await bcrypt.hash(newPassword, encryption_rounds);
+    user.resetToken = undefined; // Clear reset token
+    user.tokenExpiry = undefined; // Clear token expiry
+    await user.save();
+
+    res.send('Password updated successfully.');
+});
+
+function generateToken() {
+    return crypto.randomBytes(32).toString('hex');
+}
+
+// Endpoint for sending emails
+router.post("/reset-password", async (req, res) => {
+     const { email } = req.body;
+
+     const user=await User.findOne({email});
+     if(!user){
+        res.status(404).json({
+            msg:"User not found "
+        })
+     }
+
+    if (!email) {
+        return res.status(400).send({ message: "Email is required" });
+    }
+
+    const resetToken = generateToken();
+    const tokenExpiry = Date.now() + 15 * 60 * 1000; // 15 minutes
+
+    user.resetToken = resetToken;
+    user.tokenExpiry = tokenExpiry;
+    await user.save();
+
+    // Send email with reset link
+    const resetLink = `http://localhost/forget_pass/new_pass.html?token=${resetToken}`;
+
+    try {
+        // Configure Nodemailer
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: "noreply.safebank@gmail.com", // Replace with your email
+                pass: "mkbcmstksmnaqtkq", // Replace with your email password or app password
+            },
+        });
+
+        // Email options
+        const mailOptions = {
+            from: "npreply.safebank@gmail.com",
+            to: email,
+            subject: "Reset Your Password",
+            text: `Click the link below to reset your password:\n\n${resetLink}`,
+        };
+
+        // Send email
+        await transporter.sendMail(mailOptions);
+
+        res.send({ message: "Reset link sent to your email." });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Failed to send email. Please try again later." });
     }
 });
 
