@@ -193,43 +193,43 @@
             });
 
             // Handle form submission with Fetch
-            form.addEventListener('submit', async function(event) {
-                event.preventDefault();
+            form.addEventListener('submit', async function (event) {
+            event.preventDefault();
 
-                const password = newPassword.value;
-                const confirmPasswordValue = confirmPassword.value;
+            const password = document.getElementById('new-password').value;
+            const confirmPasswordValue = document.getElementById('confirm-password').value;
 
-                if (password !== confirmPasswordValue) {
-                    messageArea.innerHTML = '<p style="color: red;">Passwords do not match.</p>';
-                    return;
+            if (password !== confirmPasswordValue) {
+                messageArea.innerHTML = '<p style="color: red;">Passwords do not match.</p>';
+                return;
+            }
+
+            try {
+                const token = urlParams.get('token');
+                const response = await fetch(`http://localhost:8080/auth/change-pass`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        token: token,
+                        newPassword: password,
+                        confirmPassword: confirmPasswordValue
+                    })
+                });
+
+                const result = await response.text();
+
+                if (response.ok) {
+                    // Redirect to Persona Verification
+                    window.location.href = '../../Persona/landing_page/index.html';
+                } else {
+                    messageArea.innerHTML = `<p style="color: red;">${result}</p>`;
                 }
-                try {
-                    const token = urlParams.get('token');
-                    const response = await fetch(`http://localhost:8080/auth/change-pass`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            token:token,
-                            newPassword: password,
-                            confirmPassword: confirmPasswordValue
-                        })
-                    });
-
-                    const result = await response.text();
-
-                    if (response.ok) {
-                        messageArea.innerHTML = `<p style="color: green;">${result}</p>`;
-                        form.reset();
-                        strengthMeter.innerText = '';
-                    } else {
-                        messageArea.innerHTML = `<p style="color: red;">${result}</p>`;
-                    }
-                } catch (error) {
-                    messageArea.innerHTML = '<p style="color: red;">An error occurred. Please try again.</p>';
-                }
-            });
+            } catch (error) {
+                messageArea.innerHTML = '<p style="color: red;">An error occurred. Please try again.</p>';
+            }
+        });
 
             // Password strength function
             function checkPasswordStrength(password) {

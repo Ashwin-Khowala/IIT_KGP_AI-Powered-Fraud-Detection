@@ -1,4 +1,4 @@
-const { User, User_details , PendingRequest, Transaction } = require('../db/index.js');
+const { User, User_details, PendingRequest, Transaction } = require('../db/index.js');
 const jwt = require('jsonwebtoken');
 const express = require('express');
 const router = express.Router();
@@ -23,6 +23,35 @@ router.post('/transaction', async (req, res) => {
             if (isNaN(numericAmount) || numericAmount <= 0) {
                 throw new Error("Invalid amount. Please provide a valid number greater than zero.");
             }
+
+
+
+            // try {
+            //     const ai_response = await fetch("http:localhost:5000/kyc", {
+            //         method: "POST",
+            //         headers: {
+            //             "Content-Type": "application/json",
+            //         },
+            //         body: JSON.stringify({ senderId, receiverId, amount })
+            //     })
+            //     const data=await response.json();
+            //     if (ai_response == null) {
+            //         return res.status(500).json({ message: "Internal Server Error" });
+            //     }
+            //     const transaction = new Transaction({
+            //         senderId: senderId,
+            //         receiverId: receiverId,
+            //         amount: numericAmount
+            //     });
+            //     await transaction.save();
+            //     return res.status(200).json({ message: "Transaction successful" });
+            // }
+            // catch(error){
+            //     return res.status(500).json({ message: "Internal Server Error" });
+            // }
+
+
+
             const result = await User_details.sendMoney(senderId, receiverId, numericAmount);
 
             res.status(200).json(result);
@@ -65,7 +94,7 @@ router.post('/request', async (req, res) => {
             reason: description || "No reason provided",
             createdAt: new Date(),
         });
-        
+
         // Save the request
         await newRequest.save();
 
@@ -77,7 +106,7 @@ router.post('/request', async (req, res) => {
 });
 
 
-router.get('/pending-requests', async(req, res) => {
+router.get('/pending-requests', async (req, res) => {
     console.log('hi');
     try {
         const token = req.headers.token?.split(' ')[1]; // Get token from Authorization header
@@ -112,19 +141,19 @@ router.get('/pending-requests', async(req, res) => {
 
 router.post('/approve-request', async (req, res) => {
     try {
-        const { token , requestId} = req.body;
+        const { token, requestId } = req.body;
 
         // Verify the token and get user info
         const decoded = jwt.verify(token, JWT_PASS);
         const user = await User.findOne({ _id: decoded.id });
-        const user_details=await User_details.findOne({_id:decoded.user_id});
+        const user_details = await User_details.findOne({ _id: decoded.user_id });
 
         if (!user) {
             return res.status(401).json({ message: "Unauthorized" });
         }
 
         // Find the pending request by ID
-        const pendingRequest = await PendingRequest.findById({_id:requestId});
+        const pendingRequest = await PendingRequest.findById({ _id: requestId });
         console.log('Pending req approval');
         console.log(pendingRequest);
         if (!pendingRequest) {
@@ -151,14 +180,14 @@ router.post('/approve-request', async (req, res) => {
         await user.save();
 
         // Update the request status to 'Approved'
-        
-        
-        
-        
+
+
+
+
         pendingRequest.status = 'Approved';
         await pendingRequest.save();
-        const result = await User_details.acceptPending(pendingRequest.receiverId,pendingRequest.senderId, pendingRequest.amount );
-        await PendingRequest.findOneAndDelete({_id:requestId});
+        const result = await User_details.acceptPending(pendingRequest.receiverId, pendingRequest.senderId, pendingRequest.amount);
+        await PendingRequest.findOneAndDelete({ _id: requestId });
 
         res.status(200).json({ success: true, message: 'Payment successful and request approved' });
 
@@ -181,7 +210,7 @@ router.post('/reject-request', async (req, res) => {
         }
 
         // Find the pending request by ID
-        const pendingRequest = await PendingRequest.findOne({_id:requestId});
+        const pendingRequest = await PendingRequest.findOne({ _id: requestId });
 
         if (!pendingRequest) {
             return res.status(404).json({ message: "Request not found" });
@@ -225,13 +254,13 @@ router.get('/user', async (req, res) => {
 //sends the user data and sends to the frontend side by verifying the token
 router.get('/transaction-history', async (req, res) => {
     try {
-        const token = req.headers.token?.split(' ')[1]; 
-        
+        const token = req.headers.token?.split(' ')[1];
+
         const decoded = jwt.verify(token, JWT_PASS);
         const user = await User.findOne({ _id: decoded.id });
         const transactions = await User_details.getTransactions(user._id);
         // console.log(transactions);  
-        
+
         res.status(200).json(transactions);
     } catch (error) {
         res.status(400).json({ message: error.message });

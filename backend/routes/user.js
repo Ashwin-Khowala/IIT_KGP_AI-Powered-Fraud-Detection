@@ -49,10 +49,6 @@ router.post("/signup", async (req, res) => {
 
         const hashed_pass = await bcrypt.hash(password, encryption_rounds);
 
-        // if(await User.find({email:email})){
-        //     return res.status(400).json({ message: "Email already exists" });
-        // }
-
         const user = new User({
             firstName,
             middleName,
@@ -64,12 +60,10 @@ router.post("/signup", async (req, res) => {
         });
 
         //creates a user details object for the user with balance 0
-
         const user_details = new User_details({
             user_id: user._id, 
             amount: 0
         });
-        
         
         // Associate user details ID with the user
         user.user_details_id = user_details._id;
@@ -206,7 +200,7 @@ router.post("/reset-password", async (req, res) => {
     await user.save();
 
     // Send email with reset link
-    const resetLink = `http://localhost/forget_pass/new_pass.html?token=${resetToken}`;
+    const resetLink = `http://127.0.0.1:3000/frontend/forget_pass/new_pass.html?token=${resetToken}`;
 
     try {
         // Configure Nodemailer
@@ -220,7 +214,7 @@ router.post("/reset-password", async (req, res) => {
 
         // Email options
         const mailOptions = {
-            from: "npreply.safebank@gmail.com",
+            from: "noreply.safebank@gmail.com",
             to: email,
             subject: "Reset Your Password",
             text: `Click the link below to reset your password:\n\n${resetLink}`,

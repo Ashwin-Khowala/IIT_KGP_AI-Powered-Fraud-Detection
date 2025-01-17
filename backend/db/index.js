@@ -58,29 +58,6 @@ const userSchema = new Schema({
 });
 
 
-// // Increment login attempts
-// userSchema.methods.incrementLoginAttempts = async function () {
-//     if (this.lockUntil && this.lockUntil > Date.now(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }))) {
-//         return;
-//     }
-
-//     this.loginAttempts += 1;
-
-//     if (this.loginAttempts >= 5) {
-//         this.lockUntil = new Date(Date.now(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })) + 15 * 60 * 1000); // Lock for 15 minutes
-//     }
-
-//     await this.save();
-// };
-
-// // Reset login attempts
-// userSchema.methods.resetLoginAttempts = async function () {
-//     this.loginAttempts = 0;
-//     this.lockUntil = null;
-//     await this.save();
-// };
-
-
 userSchema.methods.incrementLoginAttempts = async function () {
     if (this.lockUntil && this.lockUntil > Date.now()) {
         return;
@@ -122,14 +99,216 @@ const user_details=new Schema({
     }
 });
 
+// user_details.statics.sendMoney = async function (senderId, receiverId, amount) {
+//     try {
+
+//         if (amount <= 0) {
+//             throw new Error("Amount must be greater than zero.");
+//         }
+
+           
+//         const sender = await this.findOne({ user_id: senderId });
+//         const receiver = await this.findOne({ user_id: receiverId });
+
+//         if (!sender) {
+//             throw new Error("Sender not found.");
+//         }
+
+//         if (!receiver) {
+//             throw new Error("Receiver not found.");
+//         }
+
+        
+//         sender.amount = Number(sender.amount);
+//         receiver.amount = Number(receiver.amount);
+//         try {
+//             const response = await fetch('http:localhost:5000/ai',{
+//                 method: 'POST',
+//                 headers: {
+//                     'Content-Type': 'application/json',
+//                 },
+//                 body: JSON.stringify({ senderId, receiverId, amount })
+//             });
+//             const data = await response.json();
+
+//         } catch (error) {
+//             console.log(error);
+//         }
+        
+//         if (sender.amount < amount) {
+//             throw new Error("Insufficient balance.");
+//         }
+
+//         // Start a transaction session
+//         const session = await mongoose.startSession();
+//         session.startTransaction();
+
+//         try {
+//             sender.amount -= amount;
+//             receiver.amount += amount;
+
+//             await sender.save({ session });
+//             await receiver.save({ session });
+
+//             // Create transaction records for both sender and receiver
+//             const debitTransaction = await Transaction.create([{
+//                 user_id: senderId,
+//                 amount: amount,
+//                 type: "Debit",
+//                 date: new Date()
+//             }], { session });
+
+//             const creditTransaction = await Transaction.create([{
+//                 user_id: receiverId,
+//                 amount: amount,
+//                 type: "Credit",
+//                 date: new Date()
+//             }], { session });
+
+//             // Update transactions array in sender and receiver details
+//             sender.transactions.push(debitTransaction[0]._id);
+//             receiver.transactions.push(creditTransaction[0]._id);
+
+//             await sender.save({ session });
+//             await receiver.save({ session });
+
+//             // Commit the transaction
+//             await session.commitTransaction();
+//             session.endSession();
+
+//             return { success: true, message: "Transaction successful!" };
+//         } catch (error) {
+//             // Abort the transaction on error
+//             await session.abortTransaction();
+//             session.endSession();
+//             throw error;
+//         }
+//     } catch (error) {
+//         console.error("Error in sendMoney:", error.message);
+//         throw error;
+//     }
+// };
+
+
+// user_details.statics.sendMoney = async function (senderId, receiverId, amount) {
+//     try {
+//         if (amount <= 0) {
+//             throw new Error("Amount must be greater than zero.");
+//         }
+
+//         const sender = await this.findOne({ user_id: senderId });
+//         const receiver = await this.findOne({ user_id: receiverId });
+
+//         if (!sender) {
+//             throw new Error("Sender not found.");
+//         }
+
+//         if (!receiver) {
+//             throw new Error("Receiver not found.");
+//         }
+
+//         sender.amount = Number(sender.amount);
+//         receiver.amount = Number(receiver.amount);
+
+//         if (sender.amount < amount) {
+//             throw new Error("Insufficient balance.");
+//         }
+
+//         // Call AI endpoint for fraud detection
+//         let aiPrediction;
+//         try {
+//             const response = await fetch('http://localhost:5000/predict', {
+//                 method: 'POST',
+//                 headers: {
+//                     'Content-Type': 'application/json',
+//                 },
+//                 body: JSON.stringify({
+//                     amount: amount,
+//                     oldbalanceOrg: sender.amount,
+//                     newbalanceOrig: sender.amount - amount,
+//                     oldbalanceDest: receiver.amount,
+//                     newbalanceDest: receiver.amount + amount
+//                 })
+//             });
+
+//             const data = await response.json();
+
+//             if (!response.ok) {
+//                 throw new Error(data.error || "Error communicating with AI service.");
+//             }
+
+//             aiPrediction = data;
+
+//             if (data.prediction === "Fraud") {
+//                 return { success: false, message: "Transaction flagged as fraudulent by AI.", score: data.score };
+//             }
+//         } catch (error) {
+//             console.error("Error in AI fraud detection:", error.message);
+//             throw new Error("AI fraud detection failed. Please try again later.");
+//         }
+
+//         // Start a transaction session
+//         const session = await mongoose.startSession();
+//         session.startTransaction();
+
+//         try {
+//             sender.amount -= amount;
+//             receiver.amount += amount;
+
+//             await sender.save({ session });
+//             await receiver.save({ session });
+
+//             // Create transaction records for both sender and receiver
+//             const debitTransaction = await Transaction.create([{
+//                 user_id: senderId,
+//                 amount: amount,
+//                 type: "Debit",
+//                 date: new Date()
+//             }], { session });
+
+//             const creditTransaction = await Transaction.create([{
+//                 user_id: receiverId,
+//                 amount: amount,
+//                 type: "Credit",
+//                 date: new Date()
+//             }], { session });
+
+//             // Update transactions array in sender and receiver details
+//             sender.transactions.push(debitTransaction[0]._id);
+//             receiver.transactions.push(creditTransaction[0]._id);
+
+//             await sender.save({ session });
+//             await receiver.save({ session });
+
+//             // Commit the transaction
+//             await session.commitTransaction();
+//             session.endSession();
+
+//             return {
+//                 success: true,
+//                 message: "Transaction successful!",
+//                 aiPrediction: aiPrediction,
+//                 score: aiPrediction.score
+//             };
+//         } catch (error) {
+//             // Abort the transaction on error
+//             await session.abortTransaction();
+//             session.endSession();
+//             throw error;
+//         }
+//     } catch (error) {
+//         console.error("Error in sendMoney:", error.message);
+//         throw error;
+//     }
+// };
+
 user_details.statics.sendMoney = async function (senderId, receiverId, amount) {
     try {
-
         if (amount <= 0) {
             throw new Error("Amount must be greater than zero.");
         }
 
-           
+        // Fetch sender and receiver details
         const sender = await this.findOne({ user_id: senderId });
         const receiver = await this.findOne({ user_id: receiverId });
 
@@ -141,13 +320,44 @@ user_details.statics.sendMoney = async function (senderId, receiverId, amount) {
             throw new Error("Receiver not found.");
         }
 
-        
         sender.amount = Number(sender.amount);
         receiver.amount = Number(receiver.amount);
 
-        
         if (sender.amount < amount) {
             throw new Error("Insufficient balance.");
+        }
+
+        // Predict fraud using the AI model
+        try {
+            const aiResponse = await fetch('http://localhost:5000/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    amount,
+                    oldbalanceOrg: sender.amount,
+                    newbalanceOrig: sender.amount - amount,
+                    oldbalanceDest: receiver.amount,
+                    newbalanceDest: receiver.amount + amount,
+                }),
+            });
+
+            const aiResult = await aiResponse.json();
+
+            // If the prediction indicates fraud, redirect to persona for verification
+            alert("Verify yourself");
+            if (aiResult.prediction === "Fraud") {
+                console.log('in fraud ai')
+                return {
+                    success: false,
+                    redirect: "http://127.0.0.1:3000/frontend/Persona_backend/landing_page/index.html",
+                    message: "Transaction flagged as suspicious. Please verify your identity.",
+                };
+            }
+        } catch (error) {
+            console.error("Error calling AI service:", error.message);
+            throw new Error("Unable to verify transaction at this time.");
         }
 
         // Start a transaction session
@@ -162,19 +372,25 @@ user_details.statics.sendMoney = async function (senderId, receiverId, amount) {
             await receiver.save({ session });
 
             // Create transaction records for both sender and receiver
-            const debitTransaction = await Transaction.create([{
-                user_id: senderId,
-                amount: amount,
-                type: "Debit",
-                date: new Date()
-            }], { session });
+            const debitTransaction = await Transaction.create(
+                [{
+                    user_id: senderId,
+                    amount: amount,
+                    type: "Debit",
+                    date: new Date(),
+                }],
+                { session }
+            );
 
-            const creditTransaction = await Transaction.create([{
-                user_id: receiverId,
-                amount: amount,
-                type: "Credit",
-                date: new Date()
-            }], { session });
+            const creditTransaction = await Transaction.create(
+                [{
+                    user_id: receiverId,
+                    amount: amount,
+                    type: "Credit",
+                    date: new Date(),
+                }],
+                { session }
+            );
 
             // Update transactions array in sender and receiver details
             sender.transactions.push(debitTransaction[0]._id);
@@ -199,6 +415,8 @@ user_details.statics.sendMoney = async function (senderId, receiverId, amount) {
         throw error;
     }
 };
+
+
 
 
 user_details.statics.acceptPending = async function (senderId, receiverId, amount) {

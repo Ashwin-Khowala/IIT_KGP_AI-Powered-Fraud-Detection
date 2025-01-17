@@ -81,7 +81,7 @@
                         <input type="checkbox" id="remember" name="remember">
                         <label for="remember">Remember me</label>
                     </div>
-                    <a href="#" class="forgot-password">Forgot Password?</a>
+                    <a href="../forget_pass/forget-password.html" class="forgot-password">Forgot Password?</a>
                 </div>
 
                 <div class="form-group captcha-section">
@@ -116,5 +116,10 @@
 
     <script src="login.js"></script>
     <script src="captcha.js"></script>
+    <script>
+        document.getElementById('forgot-password').onclick(()=>{
+            window.location.heref="../forget_pass/forget-password.html"
+        })
+    </script>
 </body>
 </html>
