@@ -7,8 +7,8 @@ app = Flask(__name__)
 
 # Load the model and scaler
 booster = xgb.Booster()
-booster.load_model("./model.json")
-scaler = joblib.load("./scaler.pkl")
+booster.load_model(r"./model.json")
+scaler = joblib.load(r"./scaler.pkl")
 
 # Define the columns and features used during training
 cols_to_scale = ['amount', 'oldbalanceOrg', 'newbalanceOrig', 'oldbalanceDest', 'newbalanceDest']
