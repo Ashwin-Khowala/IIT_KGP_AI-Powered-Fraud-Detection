@@ -47,7 +47,7 @@ async function loginThresholdMiddleware(req, res, next) {
             await user.save();
 
             // Send email with reset link
-            const resetLink = `http://localhost/forget_pass/new_pass.html?token=${resetToken}`;
+            const resetLink = `http://127.0.0.1:3000/frontend/forget_pass/new_pass.html?token=${resetToken}`;
             
             await transporter.sendMail({
                 from: "noreply.safebank@gmail.com",
