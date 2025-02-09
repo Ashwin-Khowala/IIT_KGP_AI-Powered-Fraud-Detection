@@ -267,6 +267,41 @@ router.get('/transaction-history', async (req, res) => {
     }
 });
 
+
+
+const mongoose = require('mongoose');
+
+router.post('/complete-transaction', async (req, res) => {
+    let { transactionId } = req.query;
+    console.log(transactionId);
+    
+
+    transactionId = new mongoose.Types.ObjectId(transactionId);
+
+    // Validate transactionId
+    if (!transactionId || !mongoose.Types.ObjectId.isValid(transactionId)) {
+        return res.status(400).json({ success: false, message: 'Invalid or missing transactionId' });
+    }
+
+    try {
+        // Convert transactionId to ObjectId
+        let txn = await PendingRequest.findById(new mongoose.Types.ObjectId(transactionId));
+
+        if (!txn) {
+            return res.status(404).json({ success: false, message: 'Transaction not found' });
+        }
+
+        txn.status = "Approved";
+        await User_details.acceptPending(txn.receiverId, txn.senderId, txn.amount);
+        await txn.save();
+
+        return res.status(200).json({ success: true, message: 'Transaction completed successfully' });
+    } catch (error) {
+        console.error("Error completing transaction:", error);
+        return res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
 module.exports = router;
 
 

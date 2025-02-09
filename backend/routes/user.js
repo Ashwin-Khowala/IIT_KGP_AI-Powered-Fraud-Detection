@@ -19,7 +19,6 @@ const encryption_rounds = 10;
 //SIGNUP ROUTE
 
 router.post("/signup", async (req, res) => {
-    console.log('hi form signup route');
     
     const { 
         firstName, 

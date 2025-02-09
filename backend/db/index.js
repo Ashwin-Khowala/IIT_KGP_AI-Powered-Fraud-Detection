@@ -189,68 +189,68 @@ const user_details=new Schema({
 //     }
 // };
 
-user_details.statics.sendMoney = async function (senderId, receiverId, amount) {
-    try {
-        if (amount <= 0) {
-            throw new Error("Amount must be greater than zero.");
-        }
+// user_details.statics.sendMoney = async function (senderId, receiverId, amount) {
+//     try {
+//         if (amount <= 0) {
+//             throw new Error("Amount must be greater than zero.");
+//         }
            
-        const sender = await this.findOne({ user_id: senderId });
-        const receiver = await this.findOne({ user_id: receiverId });
-        if (!sender) {
-            throw new Error("Sender not found.");
-        }
-        if (!receiver) {
-            throw new Error("Receiver not found.");
-        }
+//         const sender = await this.findOne({ user_id: senderId });
+//         const receiver = await this.findOne({ user_id: receiverId });
+//         if (!sender) {
+//             throw new Error("Sender not found.");
+//         }
+//         if (!receiver) {
+//             throw new Error("Receiver not found.");
+//         }
         
-        sender.amount = Number(sender.amount);
-        receiver.amount = Number(receiver.amount);
+//         sender.amount = Number(sender.amount);
+//         receiver.amount = Number(receiver.amount);
         
-        if (sender.amount < amount) {
-            throw new Error("Insufficient balance.");
-        }
-        // Start a transaction session
-        const session = await mongoose.startSession();
-        session.startTransaction();
-        try {
-            sender.amount -= amount;
-            receiver.amount += amount;
-            await sender.save({ session });
-            await receiver.save({ session });
-            // Create transaction records for both sender and receiver
-            const debitTransaction = await Transaction.create([{
-                user_id: senderId,
-                amount: amount,
-                type: "Debit",
-                date: new Date()
-            }], { session });
-            const creditTransaction = await Transaction.create([{
-                user_id: receiverId,
-                amount: amount,
-                type: "Credit",
-                date: new Date()
-            }], { session });
-            // Update transactions array in sender and receiver details
-            sender.transactions.push(debitTransaction[0]._id);
-            receiver.transactions.push(creditTransaction[0]._id);
-            await sender.save({ session });
-            await receiver.save({ session });
-            // Commit the transaction
-            await session.commitTransaction();
-            session.endSession();
-            return { success: true, message: "Transaction successful!" };
-        } catch (error) {
-            // Abort the transaction on error
-            await session.abortTransaction();
-            session.endSession();
-            throw error;
-        }
-    } catch (error) {
-        console.error("Error in sendMoney:", error.message);
-        throw error;
-    }
-};
+//         if (sender.amount < amount) {
+//             throw new Error("Insufficient balance.");
+//         }
+//         // Start a transaction session
+//         const session = await mongoose.startSession();
+//         session.startTransaction();
+//         try {
+//             sender.amount -= amount;
+//             receiver.amount += amount;
+//             await sender.save({ session });
+//             await receiver.save({ session });
+//             // Create transaction records for both sender and receiver
+//             const debitTransaction = await Transaction.create([{
+//                 user_id: senderId,
+//                 amount: amount,
+//                 type: "Debit",
+//                 date: new Date()
+//             }], { session });
+//             const creditTransaction = await Transaction.create([{
+//                 user_id: receiverId,
+//                 amount: amount,
+//                 type: "Credit",
+//                 date: new Date()
+//             }], { session });
+//             // Update transactions array in sender and receiver details
+//             sender.transactions.push(debitTransaction[0]._id);
+//             receiver.transactions.push(creditTransaction[0]._id);
+//             await sender.save({ session });
+//             await receiver.save({ session });
+//             // Commit the transaction
+//             await session.commitTransaction();
+//             session.endSession();
+//             return { success: true, message: "Transaction successful!" };
+//         } catch (error) {
+//             // Abort the transaction on error
+//             await session.abortTransaction();
+//             session.endSession();
+//             throw error;
+//         }
+//     } catch (error) {
+//         console.error("Error in sendMoney:", error.message);
+//         throw error;
+//     }
+// };
 
 
 // user_details.statics.sendMoney = async function (senderId, receiverId, amount) {
@@ -365,119 +365,175 @@ user_details.statics.sendMoney = async function (senderId, receiverId, amount) {
 //     }
 // };
 
-// user_details.statics.sendMoney = async function (senderId, receiverId, amount) {
-//     try {
-//         if (amount <= 0) {
-//             throw new Error("Amount must be greater than zero.");
-//         }
+const fetch = require('node-fetch'); // or any fetch polyfill if needed
+const nodemailer = require('nodemailer');
+// const Transaction = require('./Transaction'); // Adjust according to your project structure
 
-//         // Fetch sender and receiver details
-//         const sender = await this.findOne({ user_id: senderId });
-//         const receiver = await this.findOne({ user_id: receiverId });
+// Helper function to send a verification email.
+async function sendVerificationEmail(recipientEmail, verificationLink) {
+  // Configure the transporter (update with your actual email provider details)
+  let transporter = nodemailer.createTransport({
+    service: 'gmail', // Example using Gmail; adjust as needed.
+    auth: {
+      user: `noreply.safebank@gmail.com`, // Your email address (set in environment variables)
+      pass: `kyxmjytaupdnktsa`  // Your email password or app-specific password
+    }
+  });
 
-//         if (!sender) {
-//             throw new Error("Sender not found.");
-//         }
+  let mailOptions = {
+    from: `noreply.safebank@gmail.com`,
+    to: recipientEmail,
+    subject: 'Verify Your Identity for Transaction Approval',
+    text: `Your transaction has been flagged as suspicious. 
+Please verify your identity by clicking the link below to complete the transaction:
+  
+${verificationLink}
 
-//         if (!receiver) {
-//             throw new Error("Receiver not found.");
-//         }
+If you did not initiate this transaction, please contact support immediately.`
+  };
 
-//         sender.amount = Number(sender.amount);
-//         receiver.amount = Number(receiver.amount);
+  await transporter.sendMail(mailOptions);
+}
 
-//         if (sender.amount < amount) {
-//             throw new Error("Insufficient balance.");
-//         }
+// Updated sendMoney function.
+user_details.statics.sendMoney = async function (senderId, receiverId, amount) {
+    try {
+      if (amount <= 0) {
+        throw new Error("Amount must be greater than zero.");
+      }
+  
+      // Fetch sender and receiver details from User_details (this model)
+      const senderDetails = await this.findOne({ user_id: senderId });
+      const receiverDetails = await this.findOne({ user_id: receiverId });
 
-//         // Predict fraud using the AI model
-//         try {
-//             const aiResponse = await fetch('http://localhost:5000/predict', {
-//                 method: 'POST',
-//                 headers: {
-//                     'Content-Type': 'application/json',
-//                 },
-//                 body: JSON.stringify({
-//                     amount,
-//                     oldbalanceOrg: sender.amount,
-//                     newbalanceOrig: sender.amount - amount,
-//                     oldbalanceDest: receiver.amount,
-//                     newbalanceDest: receiver.amount + amount,
-//                 }),
-//             });
-
-//             const aiResult = await aiResponse.json();
-
-//             // If the prediction indicates fraud, redirect to persona for verification
-//             alert("Verify yourself");
-//             if (aiResult.prediction === "Fraud") {
-//                 console.log('in fraud ai')
-//                 return {
-//                     success: false,
-//                     redirect: "http://127.0.0.1:3000/frontend/Persona_backend/landing_page/index.html",
-//                     message: "Transaction flagged as suspicious. Please verify your identity.",
-//                 };
-//             }
-//         } catch (error) {
-//             console.error("Error calling AI service:", error.message);
-//             throw new Error("Unable to verify transaction at this time.");
-//         }
-
-//         // Start a transaction session
-//         const session = await mongoose.startSession();
-//         session.startTransaction();
-
-//         try {
-//             sender.amount -= amount;
-//             receiver.amount += amount;
-
-//             await sender.save({ session });
-//             await receiver.save({ session });
-
-//             // Create transaction records for both sender and receiver
-//             const debitTransaction = await Transaction.create(
-//                 [{
-//                     user_id: senderId,
-//                     amount: amount,
-//                     type: "Debit",
-//                     date: new Date(),
-//                 }],
-//                 { session }
-//             );
-
-//             const creditTransaction = await Transaction.create(
-//                 [{
-//                     user_id: receiverId,
-//                     amount: amount,
-//                     type: "Credit",
-//                     date: new Date(),
-//                 }],
-//                 { session }
-//             );
-
-//             // Update transactions array in sender and receiver details
-//             sender.transactions.push(debitTransaction[0]._id);
-//             receiver.transactions.push(creditTransaction[0]._id);
-
-//             await sender.save({ session });
-//             await receiver.save({ session });
-
-//             // Commit the transaction
-//             await session.commitTransaction();
-//             session.endSession();
-
-//             return { success: true, message: "Transaction successful!" };
-//         } catch (error) {
-//             // Abort the transaction on error
-//             await session.abortTransaction();
-//             session.endSession();
-//             throw error;
-//         }
-//     } catch (error) {
-//         console.error("Error in sendMoney:", error.message);
-//         throw error;
-//     }
-// // };
+      const sender=await User.findOne({_id:senderId});
+  
+      console.log("Sender details:", senderDetails);
+      console.log("Receiver details:", receiverDetails);
+  
+      if (!senderDetails) {
+        throw new Error("Sender details not found.");
+      }
+      if (!receiverDetails) {
+        throw new Error("Receiver details not found.");
+      }
+  
+      // Ensure the amounts are numbers.
+      senderDetails.amount = Number(senderDetails.amount);
+      receiverDetails.amount = Number(receiverDetails.amount);
+  
+      if (senderDetails.amount < amount) {
+        throw new Error("Insufficient balance.");
+      }
+  
+      // Call the AI model to predict possible fraud.
+      let aiResult;
+      try {
+        const aiResponse = await fetch('http://localhost:5000/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount,
+            oldbalanceOrg: senderDetails.amount,
+            newbalanceOrig: senderDetails.amount - amount,
+            oldbalanceDest: receiverDetails.amount,
+            newbalanceDest: receiverDetails.amount + amount,
+          }),
+        });
+        aiResult = await aiResponse.json();
+        console.log("AI Result:", aiResult);
+      } catch (error) {
+        console.error("Error calling AI service:", error.message);
+        throw new Error("Unable to verify transaction at this time.");
+      }
+  
+      // If the AI predicts fraud, mark the transaction as pending.
+      if (aiResult.prediction === 'Fraud') {
+        console.log('Transaction flagged as suspicious. Marking as pending verification.');
+  
+        // Create a pending transaction record.
+        const pendingTransaction = await PendingRequest.create({
+          senderId: senderId,
+          receiverId: receiverId,
+          amount: amount,
+          date: new Date(),
+          status: "pending"
+        });
+        // No need to call .save() after create, but if you do:
+        // await pendingTransaction.save();
+  
+        // Generate a verification link for the sender.
+        const verificationLink = `http://127.0.0.1:5050/verify-transaction?transactionId=${pendingTransaction._id}`;
+  
+        // Send a verification email to the sender.
+        console.log("Sender email:", sender.email);
+        await sendVerificationEmail(sender.email, verificationLink);
+  
+        return {
+          success: false,
+          pending: true,
+          message: "Transaction flagged as suspicious. A verification email has been sent to your email address. Please verify your identity to complete the transaction."
+        };
+      }
+  
+      // If no fraud is detected, proceed with the transaction.
+      const session = await mongoose.startSession();
+      session.startTransaction();
+  
+      try {
+        // Deduct and add amounts.
+        senderDetails.amount -= amount;
+        receiverDetails.amount += amount;
+  
+        // Create transaction records for both sender and receiver.
+        const debitTransactions = await Transaction.create(
+          [{
+            user_id: senderId,
+            amount: amount,
+            type: "Debit",
+            date: new Date(),
+            status: "completed"
+          }],
+          { session }
+        );
+  
+        const creditTransactions = await Transaction.create(
+          [{
+            user_id: receiverId,
+            amount: amount,
+            type: "Credit",
+            date: new Date(),
+            status: "completed"
+          }],
+          { session }
+        );
+  
+        // Update transactions arrays.
+        // Assuming senderDetails.transactions and receiverDetails.transactions are arrays.
+        senderDetails.transactions.push(debitTransactions[0]._id);
+        receiverDetails.transactions.push(creditTransactions[0]._id);
+  
+        // Save the updated sender and receiver details within the session.
+        await senderDetails.save({ session });
+        await receiverDetails.save({ session });
+  
+        // Commit the transaction.
+        await session.commitTransaction();
+        session.endSession();
+  
+        return { success: true, message: "Transaction successful!" };
+      } catch (error) {
+        // Abort the transaction on error.
+        await session.abortTransaction();
+        session.endSession();
+        throw error;
+      }
+    } catch (error) {
+      console.error("Error in sendMoney:", error.message);
+      throw error;
+    }
+  };
+  
 
 
 
@@ -628,6 +684,7 @@ const PendingRequestSchema = new mongoose.Schema({
     },
     paymentMethod: {
         type: String,
+        default:'bank-transfer',
         required: true
     },
     description: String,
@@ -637,6 +694,7 @@ const PendingRequestSchema = new mongoose.Schema({
     },
     reason: {
         type: String,
+        default:'none',
         required: true   // Adjust according to your model's validation rules
     },
     user_id: {
