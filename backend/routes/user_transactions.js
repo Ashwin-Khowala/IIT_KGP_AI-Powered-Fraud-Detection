@@ -24,35 +24,11 @@ router.post('/transaction', async (req, res) => {
                 throw new Error("Invalid amount. Please provide a valid number greater than zero.");
             }
 
-
-
-            // try {
-            //     const ai_response = await fetch("http:localhost:5000/kyc", {
-            //         method: "POST",
-            //         headers: {
-            //             "Content-Type": "application/json",
-            //         },
-            //         body: JSON.stringify({ senderId, receiverId, amount })
-            //     })
-            //     const data=await response.json();
-            //     if (ai_response == null) {
-            //         return res.status(500).json({ message: "Internal Server Error" });
-            //     }
-            //     const transaction = new Transaction({
-            //         senderId: senderId,
-            //         receiverId: receiverId,
-            //         amount: numericAmount
-            //     });
-            //     await transaction.save();
-            //     return res.status(200).json({ message: "Transaction successful" });
-            // }
-            // catch(error){
-            //     return res.status(500).json({ message: "Internal Server Error" });
-            // }
-
-
-
             const result = await User_details.sendMoney(senderId, receiverId, numericAmount);
+            console.log(result);
+            if(!result.success){
+                return res.status(400).json(result);
+            }
 
             res.status(200).json(result);
         } catch (error) {
@@ -67,8 +43,7 @@ router.post('/transaction', async (req, res) => {
 });
 
 
-// Route to handle money request
-// Route to handle money request
+// Route to handle money requeste
 router.post('/request', async (req, res) => {
     try {
         const { token, receiverId, amount, paymentMethod, description } = req.body;
@@ -107,7 +82,7 @@ router.post('/request', async (req, res) => {
 
 
 router.get('/pending-requests', async (req, res) => {
-    console.log('hi');
+    // console.log('hi');
     try {
         const token = req.headers.token?.split(' ')[1]; // Get token from Authorization header
 
@@ -130,7 +105,7 @@ router.get('/pending-requests', async (req, res) => {
                 { receiverId: user._id }  // If user is the receiver
             ]
         }).exec();
-        console.log(pendingRequests);
+        // console.log(pendingRequests);
 
         res.status(200).json(pendingRequests);  // Return the pending requests
     } catch (error) {
@@ -154,8 +129,8 @@ router.post('/approve-request', async (req, res) => {
 
         // Find the pending request by ID
         const pendingRequest = await PendingRequest.findById({ _id: requestId });
-        console.log('Pending req approval');
-        console.log(pendingRequest);
+        // console.log('Pending req approval');
+        // console.log(pendingRequest);
         if (!pendingRequest) {
             return res.status(404).json({ message: "Request not found" });
         }
@@ -273,10 +248,10 @@ const mongoose = require('mongoose');
 
 router.post('/complete-transaction', async (req, res) => {
     let { transactionId } = req.query;
-    console.log(transactionId);
+    // console.log(transactionId);
     
 
-    transactionId = new mongoose.Types.ObjectId(transactionId);
+    // transactionId = new mongoose.Types.ObjectId(transactionId);
 
     // Validate transactionId
     if (!transactionId || !mongoose.Types.ObjectId.isValid(transactionId)) {
