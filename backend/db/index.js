@@ -453,11 +453,11 @@ user_details.statics.sendMoney = async function (senderId, receiverId, amount) {
 
             // Create a pending transaction record.
             const pendingTransaction = await PendingRequest.create({
-                senderId: senderId,
-                receiverId: receiverId,
+                senderId: receiverId,
+                receiverId: senderId,
                 amount: amount,
                 date: new Date(),
-                status: "pending"
+                status: "pending - AI"
             });
         
             const verificationLink = `http://127.0.0.1:5050/verify-transaction?transactionId=${pendingTransaction._id}`;

@@ -130,8 +130,8 @@
                                 <tr>
                                     <th>Request ID</th>
                                     <th>Username</th>
-                                    <th>Date</th>
-                                    <th>Reason</th>
+                                    <th>Date</th>~
+                                    <th>Amount</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -435,37 +435,67 @@
             // Update the pending requests table
             const pendingRequestList = document.getElementById('pending-request-list');
             pendingRequestList.innerHTML = ''; // Clear existing requests
-            document.getElementById('pending-trans').innerText = pendingRequests.length;
+            let n=0;
+            pendingRequests.forEach(request => {
+                if(request.status!='Approved') n++;
+            });
+            document.getElementById('pending-trans').innerText = n;
 
             pendingRequests.forEach(request => {
-                console.log(request);
+                console.log('the request is ');
+                if (request.status != 'Approved') {
+                    console.log(request);
 
-                const requestRow = document.createElement('tr');
-                requestRow.innerHTML = `
-                <td>${request.receiverId}</td>
-                <td>${request.username}</td>
-                <td>${request.createdAt.split('T')[0]}</td>
-                <td>${request.reason}</td>
-                <td>
-                    <button class="btn btn-success" id="approve-btn-${request._id}">
-                        Approve
-                    </button>
-                    <button class="btn btn-danger" id="decline-btn-${request._id}">
-                        Decline
-                    </button>
-                </td>
-            `;
+                    // if (request.status != 'pending - AI') {
 
-                // Append the row to the table
-                pendingRequestList.appendChild(requestRow);
+                    const requestRow = document.createElement('tr');
+                    if (request.status != "pending - AI") {
+                        requestRow.innerHTML = `
+                            <td>${request.receiverId}</td>
+                            <td>${request.username}</td>
+                            <td>${request.createdAt.split('T')[0]}</td>
+                            <td>${request.amount}</td>
+                            <td>
+                                <button class="btn btn-success" id="approve-btn-${request._id}">
+                                    Approve
+                             </button>
+                             <button class="btn btn-danger" id="decline-btn-${request._id}">
+                                 Decline
+                                </button>
+                            </td>
+                        `;
+                        const approveButton = document.getElementById(`approve-btn-${request._id}`);
+                        const declineButton = document.getElementById(`decline-btn-${request._id}`);
 
+                    }
+                    else {
+                        requestRow.innerHTML = `
+                            <td>${request.receiverId}</td>
+                            <td>${request.username}</td>
+                            <td>${request.createdAt.split('T')[0]}</td>
+                            <td>${request.amount}</td>
+                            <td>
+                                Approve via Email
+                            </td>
+                        `;
+                    }
+                    // Append the row to the table
+                    pendingRequestList.appendChild(requestRow);
+
+                }
                 // Attach event listeners to the buttons
-                const approveButton = document.getElementById(`approve-btn-${request._id}`);
-                const declineButton = document.getElementById(`decline-btn-${request._id}`);
+                // const approveButton = document.getElementById(`approve-btn-${request._id}`);
+                // const declineButton = document.getElementById(`decline-btn-${request._id}`);
 
-                approveButton.onclick = () => approveRequest(request._id);
-                declineButton.onclick = () => declineRequest(request._id);
+                try{
+                    approveButton.onclick = () => approveRequest(request._id);
+                    declineButton.onclick = () => rejectRequest(request._id);
+                }
+                catch(e){
+                    console.log(e);
+                }
             });
+
         } catch (error) {
             console.error('Failed to fetch pending requests:', error);
         }
@@ -495,12 +525,15 @@
     }
 
     function rejectRequest(requestId) {
-        fetch(`http://localhost:8080/api/reject-request`, {  // Correct the URL for rejecting the request
-            method: 'POST', // Use POST method instead of PUT for rejecting a request
+        fetch(`http://localhost:8080/api/reject-request`, {  
+            method: 'POST', 
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ requestId: requestId }) // Send requestId in the body
+            body: JSON.stringify({
+                 token: window.localStorage.getItem('Token').split(' ')[1],
+                requestId: requestId 
+            }) 
         })
             .then(response => response.json())
             .then(data => {
@@ -512,63 +545,8 @@
             });
     }
 
-
-
-    // async function handleRequest(receiverId, action) {
-    //     console.log(`${action} request with ID: ${receiverId}`);
-
-    //     try {
-    //         const response = await fetch(`http://localhost:8080/api/pending-requests/${requestId}`, {
-    //             method: 'POST',
-    //             headers: {
-    //                 'token': `${localStorage.getItem('Token')}`,
-    //                 'Content-Type': 'application/json'
-    //             },
-    //             body: JSON.stringify({ action }) // Send the action (approve or decline) to the server
-    //         });
-
-    //         const data = await response.json();
-
-    //         if (!data.success) {
-    //             throw new Error(data.message || 'Failed to process the request');
-    //         }
-
-    //         alert(`Request ${requestId} has been ${action}d successfully.`);
-
-    //         // Refresh the pending requests list
-    //         fetch_pending_requests();
-    //     } catch (error) {
-    //         console.error(`Failed to ${action} request:`, error);
-    //         alert(`Failed to ${action} the request. Please try again.`);
-    //     }
-    // }
-
-    // // Fetch the pending requests on page load
-    fetch_pending_requests();
-
-
     
-
-    // Example for dynamically adding event listeners to multiple buttons
-    // document.addEventListener('DOMContentLoaded', function () {
-    //     const approveButtons = document.querySelectorAll('.approve-btn');
-    //     const declineButtons = document.querySelectorAll('.decline-btn');
-
-    //     approveButtons.forEach(button => {
-    //         button.addEventListener('click', function () {
-    //             const requestId = button.dataset.requestId;  // Assume requestId is stored in data-request-id attribute
-    //             approveRequest(requestId);
-    //         });
-    //     });
-
-    //     declineButtons.forEach(button => {
-    //         button.addEventListener('click', function () {
-    //             const requestId = button.dataset.requestId;  // Assume requestId is stored in data-request-id attribute
-    //             rejectRequest(requestId);
-    //         });
-    //     });
-    // });
-
+    fetch_pending_requests();
 
 
 </script>

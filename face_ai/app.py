@@ -10,12 +10,6 @@ app.config['UPLOAD_FOLDER'] = 'uploads'
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
-# The HTML for the UI is based on your design.
-# Note: We add necessary attributes to the <form> and inputs so that:
-#  - Personal info fields have names.
-#  - The government ID file input is named "id_doc".
-#  - A hidden input "face_data" stores the captured selfie (as a Base64 string).
-#  - The form’s action posts to the /verify endpoint.
 index_html = """
 <!DOCTYPE html>
 <html lang="en">
@@ -580,6 +574,26 @@ face_verification_page = """
 </html>
 """
 
+result1_html = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Verification Result</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container mt-5">
+    <div class="alert alert-info">
+      <h4>Verification Result</h4>  
+      <p>{{ message }}</p>
+      <a href="http://127.0.0.1:3000/frontend/dashboard_page/dashboard.html" class="btn btn-primary">Go Back</a>
+    </div>
+  </div>
+</body>
+</html>
+"""
+
 def save_base64_image(data_url, filename):
     try:
         header, encoded = data_url.split(',', 1)
@@ -627,13 +641,17 @@ def verify_transaction():
             try:
                 resp = requests.post(node_backend_url)
                 if resp.status_code == 200:
-                    return "Face verified! Transaction approved and completed."
+                    # return "Face verified! Transaction approved and completed."
+                    return render_template_string(result1_html, message="Face verified !  Transaction approved and verified")
                 else:
-                    return f"Face verified, but completing transaction failed: {resp.text}", 500
+                    # return f"Face verified, but completing transaction failed: {resp.text}", 500
+                    return render_template_string(result1_html, message="Face verified, but completing transaction failed:")
             except Exception as e:
-                return f"Error calling Node.js backend: {e}", 500
+                # return f"Error calling Node.js backend: {e}", 500
+                return render_template_string(result_html, message="Error calling Node.js backend.")
         else:
-            return "Face verification failed. Transaction not approved.", 400
+            # return "Face verification failed. Transaction not approved.", 400
+            return render_template_string(result1_html, message="Face verification failed. Transaction not approved.")
 
 
 
