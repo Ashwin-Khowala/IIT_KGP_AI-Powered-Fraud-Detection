@@ -1,6 +1,6 @@
 import os
 import base64
-import requests    #added newly
+import requests    
 from flask import Flask, request, render_template_string
 from werkzeug.utils import secure_filename
 from deepface import DeepFace
