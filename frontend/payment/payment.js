@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Hide payment form, show payment options
         paymentForm.style.display = 'none';
         // document.querySelector('.payment-options').style.display = 'flex';
-        window.location.href="../dashboard_page/dashboard.html";
+        window.location.href="../dashboard_page/index.html";
 
     });
 
@@ -125,12 +125,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Send Money Button
     sendMoneyBtn.addEventListener('click', () => {
-        window.location.href="../payment/paymentgateway.html";
+        window.location.href="../payment/index.html";
     });
 
     // Request Money Button
     requestMoneyBtn.addEventListener('click', () => {
-        window.location.href="../payment/paymentgateway.html";
+        window.location.href="../payment/index.html";
     });
 
     // Cancel Payment

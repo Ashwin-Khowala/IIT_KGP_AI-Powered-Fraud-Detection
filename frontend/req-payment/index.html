@@ -91,7 +91,7 @@
     <script>
         document.getElementById('cancel-payment').addEventListener('click', function () {
             alert("Click ok to confirm cancel the payment");
-            window.location.href = '../dashboard_page/dashboard.html';
+            window.location.href = '../dashboard_page/index.html';
         });
     </script>
 
@@ -132,7 +132,7 @@
 
                 if (response.ok) {
                     alert('Request successful.. Redirecting to the dashboard');
-                    window.location.href = '../dashboard_page/dashboard.html'
+                    window.location.href = '../dashboard_page/index.html'
                 } else {
                     console.error('Request failed');
                     const errorData = await response.json();
@@ -187,7 +187,7 @@
     
                 if (response.ok) {
                     alert('Request successful.. Redirecting to the dashboard');
-                    window.location.href = '../dashboard_page/dashboard.html';
+                    window.location.href = '../dashboard_page/index.html';
                 } else {
                     const errorData = await response.json();
                     alert('Error: ' + errorData.message);

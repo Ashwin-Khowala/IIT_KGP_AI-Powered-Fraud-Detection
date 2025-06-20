@@ -587,7 +587,7 @@ result1_html = """
     <div class="alert alert-info">
       <h4>Verification Result</h4>  
       <p>{{ message }}</p>
-      <a href="http://127.0.0.1:3000/frontend/dashboard_page/dashboard.html" class="btn btn-primary">Go Back</a>
+      <a href="http://127.0.0.1:3000/frontend/dashboard_page/index.html" class="btn btn-primary">Go Back</a>
     </div>
   </div>
 </body>

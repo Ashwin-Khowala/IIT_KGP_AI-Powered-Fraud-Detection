@@ -92,7 +92,7 @@
     <script>
         document.getElementById('cancel-payment').addEventListener('click', function () {
             alert("Click ok to confirm cancel the payment");
-            window.location.href = '../dashboard_page/dashboard.html';
+            window.location.href = '../dashboard_page/index.html';
         });
     </script>
 
@@ -131,14 +131,14 @@
 
                 if (response.ok) {
                     alert('Payment successful.. Redirecting to the dashboard');
-                    window.location.href = '../dashboard_page/dashboard.html'
+                    window.location.href = '../dashboard_page/index.html'
                 } else {
                     alert('Transaction Failed a mail send to the registered mail');
                     
                     console.error('Payment failed');
                     const errorData = await response.json();
                     console.error('Error:', errorData.message);
-                    window.location.href='../dashboard_page/dashboard.html'
+                    window.location.href='../dashboard_page/index.html'
                 }
             } catch (err) {
                 console.error('Error while processing payment:', err.message);

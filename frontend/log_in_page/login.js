@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log(user_data);
                 alert('Login successful! Continuing to Dashboard...');
                 localStorage.setItem("Token",user_data.token);
-                window.location.href = '../dashboard_page/dashboard.html';
+                window.location.href = '../dashboard_page/index.html';
             }
             catch(error){
                 console.error('Login failed:', error);

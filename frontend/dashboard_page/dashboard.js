@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Send Money Button
     sendMoneyBtn.addEventListener('click', () => {
-        window.location.href="../payment/paymentgateway.html";
+        window.location.href="../payment/index.html";
     });
 
     // Request Money Button
